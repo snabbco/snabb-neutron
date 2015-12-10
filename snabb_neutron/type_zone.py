@@ -13,11 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+
 from neutron.common import exceptions as exc
-from neutron.openstack.common import log
 from neutron.plugins.ml2 import driver_api as api
 
-LOG = log.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class ZoneTypeDriver(api.TypeDriver):
@@ -29,20 +30,26 @@ class ZoneTypeDriver(api.TypeDriver):
         return 'zone'
 
     def initialize(self):
-        LOG.info(_("ZoneTypeDriver initialization complete."))
+        LOG.info("ZoneTypeDriver initialization complete.")
 
     def validate_provider_segment(self, segment):
         segmentation_id = segment.get(api.SEGMENTATION_ID)
         if segmentation_id is None:
-            msg = _("segmentation_id required for Zone provider network")
+            msg = "segmentation_id required for Zone provider network"
             raise exc.InvalidInput(error_message=msg)
 
     def reserve_provider_segment(self, session, segment):
         # TODO(lukego): Ensure each Zone value is used on only one network.
-        pass
+        return segment
 
     def allocate_tenant_segment(self, session):
         raise exc.NoNetworkAvailable
 
     def release_segment(self, session, segment):
         pass
+
+    def get_mtu(self, physical_network=None):
+        pass
+
+    def is_partial_segment(self, segment):
+        return False

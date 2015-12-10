@@ -23,8 +23,10 @@ from neutron.extensions import portbindings
 from neutron.plugins.common import constants
 from neutron.plugins.ml2 import config as config
 from neutron.plugins.ml2 import driver_api as api
-from neutron.plugins.ml2.drivers import mechanism_snabb
-from neutron.tests.unit import test_db_plugin as test_plugin
+from neutron.tests.unit.db import test_db_base_plugin_v2 as test_plugin
+
+from snabb_neutron import mechanism_snabb
+
 
 PLUGIN_NAME = 'neutron.plugins.ml2.plugin.Ml2Plugin'
 
@@ -42,7 +44,7 @@ class SnabbTestCase(test_plugin.NeutronDbPluginV2TestCase):
         self.port_create_status = 'DOWN'
         self.segment = {'api.NETWORK_TYPE': ""}
         self.mech = mechanism_snabb.SnabbMechanismDriver()
-        self.mech.vif_type = portbindings.VIF_TYPE_VHOSTUSER
+        self.mech.vif_type = portbindings.VIF_TYPE_VHOST_USER
         self.mech.allocated_bandwidth = None
         self.mech.props = FakeSnabbMechanismDriverProps()
 
@@ -282,7 +284,7 @@ class FakePortContext(object):
             network)
         self._original_port = {portbindings.PROFILE: {},
                                portbindings.VIF_DETAILS: {}}
-        self._port = {portbindings.VIF_TYPE: portbindings.VIF_TYPE_VHOSTUSER,
+        self._port = {portbindings.VIF_TYPE: portbindings.VIF_TYPE_VHOST_USER,
                       'binding:host_id': host,
                       portbindings.PROFILE: {},
                       portbindings.VIF_DETAILS: {},

@@ -33,12 +33,13 @@ from neutron.plugins.ml2 import driver_api as api
 from netaddr.ip import IPAddress
 from oslo_config import cfg
 
+
 LOG = logging.getLogger(__name__)
 
 snabb_opts = [
     cfg.StrOpt('zone_definition_file',
                default='',
-               help=_("File containing <host>|<port>|<zone>|<vlan>|<subnet> "
+               help=("File containing <host>|<port>|<zone>|<vlan>|<subnet> "
                       "tuples defining all physical ports used for zones."))
 ]
 
@@ -118,7 +119,7 @@ class SnabbMechanismDriver(api.MechanismDriver):
     """
 
     def initialize(self):
-        self.vif_type = portbindings.VIF_TYPE_VHOSTUSER
+        self.vif_type = portbindings.VIF_TYPE_VHOST_USER
         # Dictionary of {host_id: {port_id: {zone: (subnet, vlan)}}}
         #
         # Use cases:
@@ -466,7 +467,7 @@ class SnabbMechanismDriver(api.MechanismDriver):
 
     def delete_port_postcommit(self, context):
         vif_type = context.current.get(portbindings.VIF_TYPE)
-        if vif_type == portbindings.VIF_TYPE_VHOSTUSER:
+        if vif_type == portbindings.VIF_TYPE_VHOST_USER:
             LOG.debug(
                 "Deleting port %(port)s on network %(network)s",
                 {'port': context.current['id'],
