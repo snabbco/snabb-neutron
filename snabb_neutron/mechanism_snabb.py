@@ -251,29 +251,34 @@ class SnabbMechanismDriver(api.MechanismDriver):
         4. Store all relevant decisions in binding:vif_details.
         5. Bind the port with VIF_VHOSTUSER to suit the Snabb Switch agent.
         """
+        if context.original:
+            orig_profile = context.original[portbindings.PROFILE]
+            orig_zone_ip = context.original[portbindings.VIF_DETAILS].get('zone_ip')
+            orig_host_id = context.original.get('binding:host_id')
+        else:
+            orig_profile = {}
+            orig_zone_ip = None
+            orig_host_id = None
         LOG.debug("Attempting to bind port %(port)s on network %(network)s "
                   "with profile %(profile)s",
                   {'port': context.current['id'],
                    'network': context.network.current['id'],
-                   'profile': context.original[portbindings.PROFILE]})
+                   'profile': orig_profile,
+                   })
         self._update_allocated_bandwidth(context)
         # REVISIT(lukego) Why is binding:profile set in
         # context.original but {} in context.current?
-        orig = context.original
-        gbps = self._requested_gbps(orig)
-        orig_zone_ip = orig[portbindings.VIF_DETAILS].get('zone_ip')
+        gbps = self._requested_gbps(orig_profile, orig_zone_ip)
 
         if orig_zone_ip is not None:
-            if context.current['binding:host_id'] != context.original[
-                    'binding:host_id']:
+            if context.current['binding:host_id'] != orig_host_id:
                 LOG.debug("Port %(port)s with ip %(ip)s "
                           "migrated from %(host_id)s "
                           "to %(orig_host_id)s",
                           {'port': context.current['id'],
                            'ip': orig_zone_ip,
                            'host_id': context.network.current['id'],
-                           'orig_host_id':
-                           context.original[portbindings.PROFILE]})
+                           'orig_host_id': orig_profile})
                 # the port has an allocated IP but is migrated
                 self.props.remove_ip(context.current['tenant_id'],
                                      orig_zone_ip)
@@ -310,7 +315,7 @@ class SnabbMechanismDriver(api.MechanismDriver):
 
                 profile = context.current[portbindings.PROFILE]
                 if profile is None:
-                    profile = context.original[portbindings.PROFILE]
+                    profile = orig_profile
                 # Store all decisions in the port vif_details.
                 vif_details = {portbindings.CAP_PORT_FILTER: True,
                                portbindings.PROFILE: profile,
@@ -335,10 +340,10 @@ class SnabbMechanismDriver(api.MechanismDriver):
                            'physnet': segment[api.PHYSICAL_NETWORK],
                            'nettype': segment[api.NETWORK_TYPE]})
 
-    def _requested_gbps(self, port):
+    def _requested_gbps(self, orig_profile, orig_zone_ip):
         """Return the number of gbps to be reserved for port."""
-        gbps = (port[portbindings.PROFILE].get('zone_gbps') or
-                port[portbindings.VIF_DETAILS].get('zone_gbps') or
+        gbps = (orig_profile.get('zone_gbps') or
+                orig_zone_ip or
                 DEFAULT_GBPS_ALLOCATION)
         return float(gbps)
 
