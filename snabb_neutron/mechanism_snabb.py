@@ -253,12 +253,14 @@ class SnabbMechanismDriver(api.MechanismDriver):
         """
         if context.original:
             orig_profile = context.original[portbindings.PROFILE]
-            orig_zone_ip = context.original[portbindings.VIF_DETAILS].get('zone_ip')
+            orig_vif_details = context.original[portbindings.VIF_DETAILS]
             orig_host_id = context.original.get('binding:host_id')
         else:
             orig_profile = {}
-            orig_zone_ip = None
+            orig_vif_details = {}
             orig_host_id = None
+        orig_zone_ip = orig_vif_details.get('zone_ip')
+
         LOG.debug("Attempting to bind port %(port)s on network %(network)s "
                   "with profile %(profile)s",
                   {'port': context.current['id'],
@@ -266,9 +268,7 @@ class SnabbMechanismDriver(api.MechanismDriver):
                    'profile': orig_profile,
                    })
         self._update_allocated_bandwidth(context)
-        # REVISIT(lukego) Why is binding:profile set in
-        # context.original but {} in context.current?
-        gbps = self._requested_gbps(orig_profile, orig_zone_ip)
+        gbps = self._requested_gbps(context.current)
 
         if orig_zone_ip is not None:
             if context.current['binding:host_id'] != orig_host_id:
@@ -340,10 +340,10 @@ class SnabbMechanismDriver(api.MechanismDriver):
                            'physnet': segment[api.PHYSICAL_NETWORK],
                            'nettype': segment[api.NETWORK_TYPE]})
 
-    def _requested_gbps(self, orig_profile, orig_zone_ip):
+    def _requested_gbps(self, port):
         """Return the number of gbps to be reserved for port."""
-        gbps = (orig_profile.get('zone_gbps') or
-                orig_zone_ip or
+        gbps = (port[portbindings.PROFILE].get('zone_gbps') or
+                port[portbindings.VIF_DETAILS].get('zone_gbps') or
                 DEFAULT_GBPS_ALLOCATION)
         return float(gbps)
 
