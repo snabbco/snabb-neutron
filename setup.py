@@ -38,6 +38,9 @@ setup(
 
     [neutron.ml2.mechanism_drivers]
     snabb = snabb_neutron.mechanism_snabb:SnabbMechanismDriver
+
+    [neutron.db.alembic_migrations]
+    snabb = snabb_neutron.db.migration:alembic_migrations
     """,
     include_package_data=True,
     zip_safe=False,
