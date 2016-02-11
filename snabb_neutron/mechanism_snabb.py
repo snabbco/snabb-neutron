@@ -319,6 +319,8 @@ class SnabbMechanismDriver(api.MechanismDriver):
                 # Store all decisions in the port vif_details.
                 vif_details = {portbindings.CAP_PORT_FILTER: True,
                                portbindings.PROFILE: profile,
+                               # defined as VIF_DETAILS_VHOSTUSER_SOCKET in nova
+                               'vhostuser_socket': '/var/lib/libvirt/qemu/{}.socket'.format(context.current['id']),
                                'zone_host': host_id,
                                'zone_ip': zone_ip,
                                'zone_vlan': vlan,
