@@ -268,7 +268,12 @@ class SnabbMechanismDriver(api.MechanismDriver):
                    'profile': orig_profile,
                    })
         self._update_allocated_bandwidth(context)
-        gbps = self._requested_gbps(context.current)
+        gbps = self._requested_gbps(
+             orig_profile,
+             orig_vif_details,
+             context.current[portbindings.PROFILE],
+             context.current[portbindings.VIF_DETAILS],
+        )
 
         if orig_zone_ip is not None:
             if context.current['binding:host_id'] != orig_host_id:
@@ -342,10 +347,12 @@ class SnabbMechanismDriver(api.MechanismDriver):
                            'physnet': segment[api.PHYSICAL_NETWORK],
                            'nettype': segment[api.NETWORK_TYPE]})
 
-    def _requested_gbps(self, port):
+    def _requested_gbps(self, orig_profile, orig_vif_details, cur_profile, cur_vif_details):
         """Return the number of gbps to be reserved for port."""
-        gbps = (port[portbindings.PROFILE].get('zone_gbps') or
-                port[portbindings.VIF_DETAILS].get('zone_gbps') or
+        gbps = (orig_profile.get('zone_gbps') or
+                orig_vif_details.get('zone_gbps') or
+                cur_profile.get('zone_gbps') or
+                cur_vif_details.get('zone_gbps') or
                 DEFAULT_GBPS_ALLOCATION)
         return float(gbps)
 
