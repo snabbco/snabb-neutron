@@ -251,10 +251,14 @@ class SnabbMechanismDriver(api.MechanismDriver):
         4. Store all relevant decisions in binding:vif_details.
         5. Bind the port with VIF_VHOSTUSER to suit the Snabb Switch agent.
         """
-        if context.original:
-            orig_profile = context.original[portbindings.PROFILE]
-            orig_vif_details = context.original[portbindings.VIF_DETAILS]
-            orig_host_id = context.original.get('binding:host_id')
+        import inspect
+        frame = inspect.currentframe()
+        l4 = inspect.getouterframes(frame)[4][0].f_locals
+        original = l4['context'].original
+        if original:
+            orig_profile = original[portbindings.PROFILE]
+            orig_vif_details = original[portbindings.VIF_DETAILS]
+            orig_host_id = original.get('binding:host_id')
         else:
             orig_profile = {}
             orig_vif_details = {}
